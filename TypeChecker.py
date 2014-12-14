@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-from SymbolTable import SymbolTable
+from SymbolTable import VariableTable
+from SymbolTable import FunctionTable
 import AST
 
 class NodeVisitor(object):
@@ -96,9 +97,11 @@ class TypeChecker(NodeVisitor):
 
     def visit_BinExpr(self, node):
         node.left.vars = node.vars
-        node.right.vars = node.vars       # requires definition of accept method in class Node
-        type1 = self.visit(node.left)     # type1 = node.left.accept(self) 
-        type2 = self.visit(node.right)    # type2 = node.right.accept(self)
+        node.left.funcs = node.funcs
+        node.right.vars = node.vars
+        node.right.funcs = node.funcs
+        type1 = self.visit(node.left)
+        type2 = self.visit(node.right)
         op    = node.op
         if type1 == -1 or type2 == -1:
             return -1
@@ -108,7 +111,6 @@ class TypeChecker(NodeVisitor):
                     return self.ttype[op][type1][type2]
         print 'ERROR: Invalid operand\'s type, line ' + str(node.lineno)
         print str(node), type1, type2
-        # print node.__class__.__name__
         return -1
 
 
@@ -122,13 +124,22 @@ class TypeChecker(NodeVisitor):
         return 'string'
 
     def visit_Program(self, node):
-        node.vars = SymbolTable(None)
+        node.vars = VariableTable(None)
+        node.funcs = FunctionTable()
+
         node.declarations.vars = node.vars
+        node.declarations.funcs = node.funcs
+
         node.instructions.vars = node.vars
-        node.fundefs.vars = SymbolTable(node.vars)
-        self.visit(node.declarations)
-        self.visit(node.fundefs)
-        self.visit(node.instructions)
+        node.instructions.funcs = node.funcs
+
+        node.fundefs.vars = VariableTable(node.vars)
+        node.fundefs.funcs = node.funcs
+
+        err_d = self.visit(node.declarations)
+        err_f = self.visit(node.fundefs)
+        err_i = self.visit(node.instructions)
+        return err_d or err_f or err_i
 
     def visit_Const(self, node):
         return node.value
@@ -141,53 +152,92 @@ class TypeChecker(NodeVisitor):
         return node.vars.get(node.name)
 
     def visit_Instruction(self, node):
+        errors = False
         if node.expr != None:
             node.expr.vars = node.vars
-            self.visit(node.expr)
+            node.expr.funcs = node.funcs
+            # print str(node)
+            if self.visit(node.expr) == -1:
+                errors = True
+        return errors
 
     def visit_Instruction_list(self, node):
+        errors = False
         if node.instructions != None:
             for instr in node.instructions:
                 instr.vars = node.vars
-                self.visit(instr)
+                instr.funcs = node.funcs
+                if self.visit(instr):
+                    errors = True
+        return errors
 
     def visit_Expression_list(self, node):
         pass
 
     def visit_Function(self, node):
         # uzupelnic symbol table
+        errors = False
         if node.comp != None:
-            node.comp.vars = SymbolTable(node.vars)
-            self.visit(node.comp)
+            node.comp.vars = VariableTable(node.vars)
+            collision = node.funcs.get(node.name)
+            # print str(node)
+            if collision == -1:
+                node.funcs.put(node.name, node.type, node.arguments)
+            else:
+                print 'ERROR: Function already declared, line ' + str(node.lineno)
+                errors = True
+            node.comp.funcs = node.funcs
+            if self.visit(node.comp):
+                errors = True
+        return errors
 
     def visit_Function_list(self, node):
+        errors = False
         if node.functions != None:
             for func in node.functions:
+                func.funcs = node.funcs
                 func.vars = node.vars
-                self.visit(func)
+                if self.visit(func):
+                    errors = True
+        return errors
 
     def visit_Declaration(self, node):
+        errors = False
         if node.inits != None:
             for init in node.inits:
                 init.vars = node.vars
+                init.funcs = node.funcs
                 name = self.visit(init)
                 if name != -1:
                     node.vars.put(name, node.type)
+                else:
+                    errors = True
+        return errors
                 # print ' ' + name, node.type
 
     def visit_Declaration_list(self, node):
+        errors = False
         if node.declarations != None:
             for dec in node.declarations:
+                dec.funcs = node.funcs
                 dec.vars = node.vars
-                self.visit(dec)
+                if self.visit(dec):
+                    errors = True
+        return errors
 
     def visit_Compound_instr(self, node):
+        errors = False
         if node.instruction_list != None:
             node.instruction_list.vars = node.vars
+            node.instruction_list.funcs = node.funcs
         if node.declaration_list != None:
             node.declaration_list.vars = node.vars
-        self.visit(node.declaration_list)
-        self.visit(node.instruction_list)
+            node.declaration_list.funcs = node.funcs
+        if self.visit(node.declaration_list):
+            errors = True
+        if self.visit(node.instruction_list):
+            errors = True
+        return errors
 
     def visit_Assignment(self, node):
         node.expression.vars = node.vars
@@ -195,12 +245,12 @@ class TypeChecker(NodeVisitor):
         # print type1, type2
         type1 = node.vars.get(node.name)
         if type1 != -1 and type2 != -1:
-            if type1 == type2:
+            if (type1 != 'string' and type2 != 'string') or (type1 == 'string' and type2 == 'string'):
                 return type1
         if type1 == -1:
             print 'ERROR: Undeclared variable, line %s' % node.lineno
             return -1
-        print 'ERROR: Type mismatch, line %s' % node.lineno
+        print 'ERROR: Type mismatch while assigning, line %s' % node.lineno
         return -1
 
     def visit_Init(self, node):

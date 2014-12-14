@@ -1,33 +1,32 @@
 #!/usr/bin/python
 
+class FunctionTable(object):
 
-# class VariableSymbol(Symbol):
+    def __init__(self):
+        self.dictionary = {}
 
-    # def __init__(self, name, type):
-    #
-    #
+    def put(self, name, retval, args):
+        self.dictionary[name] = [retval, args]
 
+    def get(self, name):
+        if name in self.dictionary.keys():
+            return self.dictionary[name]
+        else:
+            return -1
 
-class SymbolTable(object):
+class VariableTable(object):
 
-    def __init__(self, parent, name=None):
+    def __init__(self, parent):
         self.parentScope = parent
         self.dictionary = {}
 
     def put(self, name, symbol):
-    # sprawdzam czy inny nie posiada takiej nazwy
-        if name in self.dictionary.keys():
-            self.dictionary[name] = symbol
-            return -1
-        else:
-            self.dictionary[name] = symbol
-            return 0
+        self.dictionary[name] = symbol
 
     def collision(self, name):
         return name in self.dictionary.keys()
 
     def get(self, name):
-    # sprawdzam czy istnieje juz o takiej nazwie
         if name in self.dictionary.keys():
             return self.dictionary[name]
         elif self.parentScope != None:
