@@ -48,9 +48,6 @@ class Cparser(object):
 
     symbol_table = {}
 
-    # declarations
-    # instruction_list = Instruction_list()
-
     def p_error(self, p):
         if p:
             print("Syntax error at line {0}, column {1}: LexToken({2}, '{3}')".format(p.lineno,
@@ -69,7 +66,6 @@ class Cparser(object):
         funs = Function_list()
 
         for fun1 in p[2]:
-            # print fun1
             funs.addFunction(fun1)
 
         instr = Instruction_list()
@@ -85,24 +81,8 @@ class Cparser(object):
         """declarations : declarations declaration
                         | """
 
-        # if len(p) == 3:
-        #     dec_list = p[1]
-        #     dec = Declaration_list()
-        #     for decl1 in dec_list:
-        #         dec.addDeclaration(decl1)
-        #
-        #     p[0] = dec
-        # else:
-        #     p[0] = []
-
         if len(p) == 3:
             p[0] = p[1] + [p[2]]
-            # for decl in p[1]:
-            #     print decl
-            #     list.append(decl)
-            #
-            # p[0] = list
-
         else:
             p[0] = []
 
@@ -158,15 +138,18 @@ class Cparser(object):
         """print_instr : PRINT expression ';'
                        | PRINT error ';' """
 
-        p[0] = Instruction('print', p[2])
+        p[0] = PrintInstruction(p.lineno(1), p[2])
 
 
     def p_labeled_instr(self, p):
         """labeled_instr : ID ':' instruction """
 
+        p[0] = LabeledInstruction(p.lineno(1), p[1], p[3])
+
 
     def p_assignment(self, p):
         """assignment : ID '=' expression ';' """
+
         p[0] = Assignment(p[1], p[3], p.lineno(1))
 
 
@@ -176,30 +159,41 @@ class Cparser(object):
                         | IF '(' error ')' instruction  %prec IFX
                         | IF '(' error ')' instruction ELSE instruction """
 
+        if len(p) == 6:
+            p[0] = ChoiceInstruction(p.lineno(1), p[3], p[5])
+        else:
+            p[0] = ChoiceInstruction(p.lineno(1), p[3], p[5], p[7])
 
     def p_while_instr(self, p):
         """while_instr : WHILE '(' condition ')' instruction
                        | WHILE '(' error ')' instruction """
 
+        p[0] = WhileInstruction(p.lineno(1), p[3], p[5])
+
 
     def p_repeat_instr(self, p):
         """repeat_instr : REPEAT instructions UNTIL condition ';' """
+
+        p[0] = RepeatInstruction(p.lineno(1), p[2], p[4])
 
 
     def p_return_instr(self, p):
         """return_instr : RETURN expression ';' """
 
+        p[0] = ReturnInstruction(p.lineno(1), p[2])
+
     def p_continue_instr(self, p):
         """continue_instr : CONTINUE ';' """
+
+        p[0] = ContinueInstructoion()
 
     def p_break_instr(self, p):
         """break_instr : BREAK ';' """
 
+        p[0] = BreakInstruction()
 
     def p_compound_instr(self, p):
         """compound_instr : '{' new_scope declarations instructions '}' """
-
-
 
         comp = Compound_instr()
         for dec in p[3]:
@@ -279,11 +273,11 @@ class Cparser(object):
                       | '(' error ')'
                       | ID '(' expr_list_or_empty ')'
                       | ID '(' error ')' """
+
         if len(p) == 4:
             p[0] = p[2]
         else:
             p[0] = (p[1], p[2])
-    #TODO
 
     def p_expr_list_or_empty(self, p):
         """expr_list_or_empty : expr_list
@@ -297,7 +291,6 @@ class Cparser(object):
 
         if len(p) == 4:
             p[0] = p[1] + [p[3]]
-            # print '[%s]' % ', '.join(map(str, p[0]))
         else:
             p[0] = [p[1]]
 
@@ -305,20 +298,8 @@ class Cparser(object):
         """fundefs : fundef fundefs
                    |  """
 
-        # TODO
-        # if len(p) == 3:
-        #     fundefs.append(p[1])
-        #     p[0] = fundefs
-        # else:
-        #     p[0] = fundefs
-
         if len(p) == 3:
             p[0] = [p[1]] + p[2]
-            # for decl in p[1]:
-            #     print decl
-            #     list.append(decl)
-            #
-            # p[0] = list
 
         else:
             p[0] = []

@@ -7,6 +7,13 @@ def addToClass(cls):
         return func
     return decorator
 
+def addIndent(indent):
+    result = ""
+    i = 0
+    while i < indent:
+        result += "| "
+        i += 1
+    return result
 
 class TreePrinter:
 
@@ -14,15 +21,16 @@ class TreePrinter:
     def printTree(self):
         raise Exception("printTree not defined in class " + self.__class__.__name__)
 
+    @addToClass(AST.Node)
+    def printTree(self, indent):
+
+        result = addIndent(indent)
+        return result
+
 
     @addToClass(AST.BinExpr)
     def printTree(self):
         pass
-        # print 'ok'
-        # print '|' + AST.BinExpr.left
-        # print '|' + AST.BinExpr.right
-
-        # ...
 
     @addToClass(AST.Program)
     def printTree(self):
@@ -31,8 +39,6 @@ class TreePrinter:
     @addToClass(AST.Const)
     def printTree(self):
         pass
-    # @addToClass ...
-    # ...
 
     @addToClass(AST.Instruction_list)
     def printTree(self):
@@ -53,3 +59,36 @@ class TreePrinter:
     @addToClass(AST.Function)
     def printTree(self):
         pass
+
+    @addToClass(AST.PrintInstruction)
+    def printTree(self):
+        pass
+
+    @addToClass(AST.LabeledInstruction)
+    def printTree(self):
+        pass
+
+    @addToClass(AST.ChoiceInstruction)
+    def printTree(self):
+        pass
+
+    @addToClass(AST.WhileInstruction)
+    def printTree(self):
+        pass
+
+    @addToClass(AST.RepeatInstruction)
+    def printTree(self):
+        pass
+
+    @addToClass(AST.ReturnInstruction)
+    def printTree(self):
+        pass
+
+    @addToClass(AST.ContinueInstruction)
+    def printTree(self):
+        pass
+
+    @addToClass(AST.BreakInstruction)
+    def printTree(self):
+        pass
+

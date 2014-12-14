@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from SymbolTable import SymbolTable
-
+import AST
 
 class NodeVisitor(object):
 

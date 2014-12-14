@@ -27,7 +27,6 @@ class Program(Node):
         self.instructions = instructions
 
     def __str__(self):
-        # return [self.declarations, self.fundefs, self.instructions]
         return str([str(self.declarations), str(self.fundefs), str(self.instructions)]).replace('\\', '')
 
 class Const(Node):
@@ -74,13 +73,84 @@ class Instruction_list(Node):
         self.instructions = []
 
     def addInstruction(self, instruction):
-        self.instructions = self.instructions + [instruction]
+        self.instructions.append(instruction)
 
     def __str__(self):
         lista = []
         for i in self.instructions:
             lista.append(str(i))
         return ' '.join(lista)
+
+
+class PrintInstruction(Node):
+    def __init__(self,lineno, expression):
+        self.lineno = lineno
+        self.expression = expression
+
+    def __str__(self):
+        return str(('PRINT', str(self.expression)))
+
+class LabeledInstruction(Node):
+    def __init__(self,lineno, id, instruction):
+        self.lineno = lineno
+        self.id = id
+        self.instruction = instruction
+
+    def __str__(self):
+        return str(('LABELED', str(self.id), str(self.instruction)))
+
+
+class ChoiceInstruction(Node):
+    def __init__(self,lineno, condition, instruction, elseinstruction = None):
+        self.lineno = lineno
+        self.condition = condition
+        self.instruction = instruction
+        self.elseinstruction = elseinstruction
+
+    def __str__(self):
+
+        if(self.elseinstruction == None):
+            return str(('IF', str(self.condition), str(self.instruction)))
+
+        else:
+            return str(('IF', str(self.condition), str(self.instruction), 'ELSE', str(self.elseinstruction)))
+
+class WhileInstruction(Node):
+    def __init__(self,lineno, condition, instruction):
+        self.lineno = lineno
+        self.condition = condition
+        self.instruction = instruction
+
+    def __str__(self):
+        return str(('WHILE', str(self.condition), str(self.instruction)))
+
+class RepeatInstruction(Node):
+    def __init__(self,lineno, instructions, condition):
+        self.lineno = lineno
+        self.instructions = instructions
+        self.condition = condition
+
+    def __str__(self):
+        return str(('REPEAT', str(self.expression), 'UNTIL', str(self.condition)))
+
+class ReturnInstruction(Node):
+    def __init__(self,lineno, expression):
+        self.lineno = lineno
+        self.expression = expression
+
+    def __str__(self):
+        return str(('RETURN', str(self.expression)))
+
+class ContinueInstruction(Node):
+
+    def __str__(self):
+        return str(('CONTINUE'))
+
+class BreakInstruction(Node):
+
+    def __str__(self):
+        return str(('BREAK'))
+
 
 
 class Expression_list(Node):
@@ -97,7 +167,6 @@ class Expression_list(Node):
             lista.append(str(i))
         return ' '.join(lista)
 
-# ...
 
 class Function(Node):
 
@@ -185,6 +254,7 @@ class Compound_instr(Node):
 
     def __str__(self):
         return str((str(self.declaration_list), str(self.instruction_list)))
+
 
 # class Scope(Node):
 #
