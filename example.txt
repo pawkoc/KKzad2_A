@@ -2,7 +2,7 @@ int  x = 1;
 
 int b() {
     int x=1, c=12;
-    float y=1, z=12;
+    float q=1, z=12;
     print 1+1;
 
     if(a == 2) {
@@ -15,7 +15,7 @@ int b() {
     print x + y - 2*(12+2);
 }
 
-int fun2(int a) {
+int fun2(int x) {
 
     print x;
 }

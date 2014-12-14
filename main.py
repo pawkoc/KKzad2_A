@@ -24,6 +24,6 @@ if __name__ == '__main__':
     print p
         # t = TreePrinter.TreePrinter()
         # t.printTree()
-    # TC = TypeChecker()
+    TC = TypeChecker()
     #
-    # TC.visit(p)
+    TC.visit(p)

@@ -134,7 +134,7 @@ class RepeatInstruction(Node):
         return str(('REPEAT', str(self.expression), 'UNTIL', str(self.condition)))
 
 class ReturnInstruction(Node):
-    def __init__(self,lineno, expression):
+    def __init__(self, lineno, expression):
         self.lineno = lineno
         self.expression = expression
 

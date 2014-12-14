@@ -228,10 +228,10 @@ class TypeChecker(NodeVisitor):
     def visit_Compound_instr(self, node):
         errors = False
         if node.instruction_list != None:
-            node.instruction_list.vars = node.vars
+            node.instruction_list.vars = VariableTable(node.vars)
             node.instruction_list.funcs = node.funcs
         if node.declaration_list != None:
-            node.declaration_list.vars = node.vars
+            node.declaration_list.vars = VariableTable(node.vars)
             node.declaration_list.funcs = node.funcs
         if self.visit(node.declaration_list):
             errors = True
@@ -261,4 +261,35 @@ class TypeChecker(NodeVisitor):
             return -1
         return node.name
 
-    #def visit_
+    def visit_PrintInstruction(self, node):
+        pass
+
+
+    def visit_LabeledInstruction(self, node):
+        pass
+
+
+    def visit_ChoiceInstruction(self, node):
+        pass
+
+
+    def visit_WhileInstruction(self, node):
+        pass
+
+
+    def visit_RepeatInstruction(self, node):
+        pass
+
+
+    def visit_ReturnInstruction(self, node):
+        pass
+
+
+    def visit_ContinueInstruction(self, node):
+        pass
+
+
+    def visit_BreakInstruction(self, node):
+        pass
+
+
