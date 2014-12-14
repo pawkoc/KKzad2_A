@@ -4,7 +4,7 @@ string k = "abc";
 
 int b() {
     int x=1, c=12;
-    float y=1, z=12;
+    float q=1, z=12;
     print 1+1;
 
     if(a == 2) {
@@ -32,6 +32,9 @@ int fun2(int a, int b, int c) {
 
     int a = 12;
     float b = 12.12;
+}
+
+int fun2(int x) {
 
     print x;
     print y;
