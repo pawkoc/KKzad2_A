@@ -1,24 +1,21 @@
+float a = 0, b = 0, c = 0;
 
-int b() {
-    int x=1, c=12;
-    float q=1, z=12;
-    print 1+1;
+int gcd(int m, int n) {
 
-    if(a == 2) {
-        print "yes";
+int res = 0;
+if (m!=n) { 
+    if (m > n) 
+        res = gcd(m-n, n);
+    else
+        res = gcd(n-m, m);
+}
+else
+    res = m;
 
-    }
-
-    print fun2(12, 13);
-
-    print x + y - 2*(12+2);
+print res;
+return res;
 }
 
-int fun2(int x) {
-
-    print x;
+while(a >= b ) {
+    a = 1/2*(a+b/a);
 }
-
-print 9 + (8 * 7 + 8);
-print 1 + 1;
-print 2 - 3;
