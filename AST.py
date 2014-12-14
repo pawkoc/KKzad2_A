@@ -4,13 +4,17 @@ class Node(object):
     def __str__(self):
         return self.printTree()
 
+    def accept(self, visitor):
+        return visitor.visit(self)
+
 
 class BinExpr(Node):
 
-    def __init__(self, op, left, right):
+    def __init__(self, op, left, right, lineno):
         self.op = op
         self.left = left
         self.right = right
+        self.lineno = lineno
 
     def __str__(self):
         return '[%s]' % ', '.join(map(str, [self.op, str(self.left), str(self.right)]))
@@ -24,7 +28,7 @@ class Program(Node):
 
     def __str__(self):
         # return [self.declarations, self.fundefs, self.instructions]
-        return str([str(self.declarations), str(self.fundefs), str(self.instructions)])
+        return str([str(self.declarations), str(self.fundefs), str(self.instructions)]).replace('\\', '')
 
 class Const(Node):
 
@@ -36,22 +40,23 @@ class Const(Node):
 
 class Integer(Const):
     pass
-    #...
-
 
 class Float(Const):
     pass
-    #...
-
 
 class String(Const):
     pass
-    #...
 
 
 class Variable(Node):
-    pass
-    #...
+
+    def __init__(self, name, lineno):
+        self.name = name
+        self.lineno = lineno
+
+    def __str__(self):
+        return str(self.name)
+
 
 class Instruction(Node):
 
@@ -96,14 +101,16 @@ class Expression_list(Node):
 
 class Function(Node):
 
-    def __init__(self, type, name, arguments):
+    def __init__(self, type, name, arguments, comp, lineno):
         self.type = type
         self.name = name
         self.arguments = arguments
+        self.comp = comp
+        self.lineno = lineno
         # self.instructions = instructions
 
     def __str__(self):
-        return str((self.type, self.name, str(self.arguments)))
+        return str((self.type, self.name, str(self.arguments), str(self.comp)))
 
 class Function_list(Node):
 
@@ -117,6 +124,28 @@ class Function_list(Node):
         return '[%s]' % ', '.join(map(str, self.functions))
 
 
+class Assignment(Node):
+
+    def __init__(self, name, expression, lineno):
+        self.lineno = lineno
+        self.name = name
+        self.expression = expression
+
+    def __str__(self):
+        return '[=, %s, %s]' % (str(self.name), self.expression.__str__())
+
+
+class Init(Node):
+
+    def __init__(self, name, expression, lineno):
+        self.name = name
+        self.expression = expression
+        self.lineno = lineno
+
+    def __str__(self):
+        return '[=, %s, %s]' % (str(self.name), self.expression.__str__())
+
+
 # One line of declarations
 class Declaration(Node):
 
@@ -124,8 +153,8 @@ class Declaration(Node):
         self.type = type
         self.inits = []
 
-    def addInit(self, name, val):
-        self.inits.append(BinExpr(left=name, op='=', right=val))
+    def addInit(self, name, val, lineno):
+        self.inits.append(Init(name, val, lineno))#BinExpr(left=name, op='=', right=val))
 
     def __str__(self):
         return str((self.type, '[%s]' % ', '.join(map(str, self.inits))))

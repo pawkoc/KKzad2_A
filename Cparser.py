@@ -72,8 +72,6 @@ class Cparser(object):
             # print fun1
             funs.addFunction(fun1)
 
-        # print funs
-
         instr = Instruction_list()
 
         for instr1 in p[3]:
@@ -113,7 +111,7 @@ class Cparser(object):
                        | error ';' """
         dec = Declaration(p[1])
         for decl in p[2]:
-            dec.addInit(decl[0], decl[1])
+            dec.addInit(decl[0], decl[1], p.lineno(1))
 
         p[0] = dec
 
@@ -169,6 +167,7 @@ class Cparser(object):
 
     def p_assignment(self, p):
         """assignment : ID '=' expression ';' """
+        p[0] = Assignment(p[1], p[3], p.lineno(1))
 
 
     def p_choice_instr(self, p):
@@ -227,17 +226,31 @@ class Cparser(object):
 
         p[0] = p[1]
 
+    def p_integer(self, p):
+        """integer : INTEGER"""
+        p[0] = Integer(p[1])
+
+    def p_float(self, p):
+        """float : FLOAT"""
+        p[0] = Float(p[1])
+
+    def p_string(self, p):
+        """string : STRING"""
+        p[0] = String(p[1])
+
     def p_const(self, p):
-        """const : INTEGER
-                 | FLOAT
-                 | STRING"""
-        p[0] = Const(p[1])
-        # print p[0]
+        """const : integer
+                 | float
+                 | string """
+        p[0] = p[1]
+
+    def p_expression_const(self, p):
+        """expression : const """
+        p[0] = p[1]
 
     def p_expression_ID(self, p):
-        """expression : ID
-                        | const"""
-        p[0] = p[1]
+        """expression : ID """
+        p[0] = Variable(p[1], p.lineno(1))
 
     def p_expression_bin(self, p):
         """expression : expression '+' expression
@@ -259,7 +272,7 @@ class Cparser(object):
                       | expression LE expression
                       | expression GE expression """
 
-        p[0] = BinExpr(op=p[2], left=p[1], right=p[3])
+        p[0] = BinExpr(op=p[2], left=p[1], right=p[3], lineno=p.lineno(1))
 
     def p_expression(self, p):
         """expression : '(' expression ')'
@@ -313,7 +326,7 @@ class Cparser(object):
     def p_fundef(self, p):
         """fundef : TYPE ID '(' args_list_or_empty ')' compound_instr """
 
-        fun = Function(p[1], p[2], p[4])
+        fun = Function(p[1], p[2], p[4], p[6], p.lineno(0))
         p[0] = fun
 
     def p_args_list_or_empty(self, p):
