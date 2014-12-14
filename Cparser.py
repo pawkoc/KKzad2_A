@@ -76,7 +76,6 @@ class Cparser(object):
 
         p[0] = Program(dec, funs, instr)
 
-
     def p_declarations(self, p):
         """declarations : declarations declaration
                         | """
@@ -202,9 +201,7 @@ class Cparser(object):
         for instr in p[4]:
             comp.addInstruction(instr)
 
-        c = Instruction('comp', comp)
-
-        p[0] = c
+        p[0] = comp
 
         # pop_scope()
 

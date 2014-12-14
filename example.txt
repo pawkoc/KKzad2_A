@@ -1,3 +1,6 @@
+int x= 1;
+int abc = 123, b = (90 - 2);
+string k = "abc";
 
 int b() {
     int x=1, c=12;
@@ -7,18 +10,37 @@ int b() {
     if(a == 2) {
         print "yes";
 
+
+        while(a >= b ) {
+            a = 1/2*(a+b/a);
+            break;
+        }
+
+        a : print x;
     }
 
     print fun2(12, 13);
 
     print x + y - 2*(12+2);
+
+    continue;
+
+    return x;
 }
 
-int fun2(int a) {
+int fun2(int a, int b, int c) {
+
+    int a = 12;
+    float b = 12.12;
 
     print x;
+    print y;
+    print u;
 }
 
 print 9 + (8 * 7 + 8);
 print 1 + 1;
 print 2 - 3;
+
+x = fun2(1, 2, 3);
+y = fun2(1, 2, 3);
