@@ -74,7 +74,13 @@ class Cparser(object):
 
         # print funs
 
-        p[0] = Program(dec, funs, p[3])
+        instr = Instruction_list()
+
+        for instr1 in p[3]:
+            instr.addInstruction(instr1)
+
+
+        p[0] = Program(dec, funs, instr)
 
 
     def p_declarations(self, p):
@@ -129,12 +135,12 @@ class Cparser(object):
         """instructions : instructions instruction
                         | instruction """
         if len(p) == 3:
-            instructions.addInstruction(p[2])
-            p[0] = instructions
+            # instructions.addInstruction(p[2])
+            p[0] = p[1] + [p[2]]
 
         else:
-            instructions.addInstruction(p[1])
-            p[0] = instructions
+            # instructions.addInstruction(p[1])
+            p[0] = [p[1]]
 
     def p_instruction(self, p):
         """instruction : print_instr
@@ -200,7 +206,7 @@ class Cparser(object):
         for dec in p[3]:
             comp.addDeclaration(dec)
 
-        for instr in p[4].instructions:
+        for instr in p[4]:
             comp.addInstruction(instr)
 
         c = Instruction('comp', comp)
@@ -313,7 +319,10 @@ class Cparser(object):
     def p_args_list_or_empty(self, p):
         """args_list_or_empty : args_list
                               | """
-        p[0] = p[1]
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = []
 
     def p_args_list(self, p):
         """args_list : args_list ',' arg
