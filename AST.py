@@ -2,7 +2,8 @@
 class Node(object):
 
     def __str__(self):
-        return self.printTree()
+        return self.printTree(0)
+        # return "ALA120"
 
     def accept(self, visitor):
         return visitor.visit(self)
@@ -16,8 +17,8 @@ class BinExpr(Node):
         self.right = right
         self.lineno = lineno
 
-    def __str__(self):
-        return '[%s]' % ', '.join(map(str, [self.op, str(self.left), str(self.right)]))
+    # def __str__(self):
+    #     return '[%s]' % ', '.join(map(str, [self.op, str(self.left), str(self.right)]))
 
 class Program(Node):
 
@@ -26,16 +27,16 @@ class Program(Node):
         self.fundefs = fundefs
         self.instructions = instructions
 
-    def __str__(self):
-        return str([str(self.declarations), str(self.fundefs), str(self.instructions)]).replace('\\', '')
+    # def __str__(self):
+    #     return str([str(self.declarations), str(self.fundefs), str(self.instructions)]).replace('\\', '')
 
 class Const(Node):
 
     def __init__(self, value):
         self.value = value
 
-    def __str__(self):
-        return self.value
+    # def __str__(self):
+    #     return self.value
 
 class Integer(Const):
     pass
@@ -53,18 +54,18 @@ class Variable(Node):
         self.name = name
         self.lineno = lineno
 
-    def __str__(self):
-        return str(self.name)
+    # def __str__(self):
+    #     return str(self.name)
 
 
-class Instruction(Node):
-
-    def __init__(self, name, expr):
-        self.name = name
-        self.expr = expr
-
-    def __str__(self):
-        return str([str(self.name), str(self.expr)])
+# class Instruction(Node):
+#
+#     def __init__(self, name, expr):
+#         self.name = name
+#         self.expr = expr
+#
+#     # def __str__(self):
+#     #     return str([str(self.name), str(self.expr)])
 
 
 class Instruction_list(Node):
@@ -75,11 +76,11 @@ class Instruction_list(Node):
     def addInstruction(self, instruction):
         self.instructions.append(instruction)
 
-    def __str__(self):
-        lista = []
-        for i in self.instructions:
-            lista.append(str(i))
-        return ' '.join(lista)
+    # def __str__(self):
+    #     lista = []
+    #     for i in self.instructions:
+    #         lista.append(str(i))
+    #     return ' '.join(lista)
 
 
 class PrintInstruction(Node):
@@ -87,8 +88,8 @@ class PrintInstruction(Node):
         self.lineno = lineno
         self.expression = expression
 
-    def __str__(self):
-        return str(('PRINT', str(self.expression)))
+    # def __str__(self):
+    #     return str(('PRINT', str(self.expression)))
 
 class LabeledInstruction(Node):
     def __init__(self,lineno, id, instruction):
@@ -96,8 +97,8 @@ class LabeledInstruction(Node):
         self.id = id
         self.instruction = instruction
 
-    def __str__(self):
-        return str(('LABELED', str(self.id), str(self.instruction)))
+    # def __str__(self):
+    #     return str(('LABELED', str(self.id), str(self.instruction)))
 
 
 class ChoiceInstruction(Node):
@@ -107,13 +108,13 @@ class ChoiceInstruction(Node):
         self.instruction = instruction
         self.elseinstruction = elseinstruction
 
-    def __str__(self):
-
-        if(self.elseinstruction == None):
-            return str(('IF', str(self.condition), str(self.instruction)))
-
-        else:
-            return str(('IF', str(self.condition), str(self.instruction), 'ELSE', str(self.elseinstruction)))
+    # def __str__(self):
+    #
+    #     if(self.elseinstruction == None):
+    #         return str(('IF', str(self.condition), str(self.instruction)))
+    #
+    #     else:
+    #         return str(('IF', str(self.condition), str(self.instruction), 'ELSE', str(self.elseinstruction)))
 
 class WhileInstruction(Node):
     def __init__(self,lineno, condition, instruction):
@@ -121,8 +122,8 @@ class WhileInstruction(Node):
         self.condition = condition
         self.instruction = instruction
 
-    def __str__(self):
-        return str(('WHILE', str(self.condition), str(self.instruction)))
+    # def __str__(self):
+    #     return str(('WHILE', str(self.condition), str(self.instruction)))
 
 class RepeatInstruction(Node):
     def __init__(self,lineno, instructions, condition):
@@ -130,26 +131,26 @@ class RepeatInstruction(Node):
         self.instructions = instructions
         self.condition = condition
 
-    def __str__(self):
-        return str(('REPEAT', str(self.expression), 'UNTIL', str(self.condition)))
+    # def __str__(self):
+    #     return str(('REPEAT', str(self.expression), 'UNTIL', str(self.condition)))
 
 class ReturnInstruction(Node):
     def __init__(self, lineno, expression):
         self.lineno = lineno
         self.expression = expression
 
-    def __str__(self):
-        return str(('RETURN', str(self.expression)))
+    # def __str__(self):
+    #     return str(('RETURN', str(self.expression)))
 
 class ContinueInstruction(Node):
-
-    def __str__(self):
-        return str(('CONTINUE'))
+    pass
+    # def __str__(self):
+    #     return 'CONTINUE'
 
 class BreakInstruction(Node):
-
-    def __str__(self):
-        return str(('BREAK'))
+    pass
+    # def __str__(self):
+    #     return 'BREAK'
 
 
 
@@ -161,12 +162,12 @@ class Expression_list(Node):
     def addExpression(self, expression):
         self.expressions.append(expression)
 
-    def __str__(self):
-        # lista = []
-        # for i in self.expressions:
-        #     lista.append(str(i))
-        # return ' '.join(lista)
-        return '[%s]' % ', '.join(map(str, self.expressions))
+    # def __str__(self):
+    #     # lista = []
+    #     # for i in self.expressions:
+    #     #     lista.append(str(i))
+    #     # return ' '.join(lista)
+    #     return '[%s]' % ', '.join(map(str, self.expressions))
 
 
 class Function(Node):
@@ -179,8 +180,8 @@ class Function(Node):
         self.lineno = lineno
         # self.instructions = instructions
 
-    def __str__(self):
-        return str((self.type, self.name, str(self.arguments), str(self.comp)))
+    # def __str__(self):
+    #     return str((self.type, self.name, str(self.arguments), str(self.comp)))
 
 class Function_list(Node):
 
@@ -190,8 +191,8 @@ class Function_list(Node):
     def addFunction(self, function):
         self.functions.append(function)
 
-    def __str__(self):
-        return '[%s]' % ', '.join(map(str, self.functions))
+    # def __str__(self):
+    #     return '[%s]' % ', '.join(map(str, self.functions))
 
 
 class Assignment(Node):
@@ -201,8 +202,8 @@ class Assignment(Node):
         self.name = name
         self.expression = expression
 
-    def __str__(self):
-        return '[=, %s, %s]' % (str(self.name), self.expression.__str__())
+    # def __str__(self):
+    #     return '[=, %s, %s]' % (str(self.name), self.expression.__str__())
 
 
 class Init(Node):
@@ -212,8 +213,8 @@ class Init(Node):
         self.expression = expression
         self.lineno = lineno
 
-    def __str__(self):
-        return '[=, %s, %s]' % (str(self.name), self.expression.__str__())
+    # def __str__(self):
+    #     return '[=, %s, %s]' % (str(self.name), self.expression.__str__())
 
 
 # One line of declarations
@@ -226,8 +227,8 @@ class Declaration(Node):
     def addInit(self, name, val, lineno):
         self.inits.append(Init(name, val, lineno))#BinExpr(left=name, op='=', right=val))
 
-    def __str__(self):
-        return str((self.type, '[%s]' % ', '.join(map(str, self.inits))))
+    # def __str__(self):
+    #     return str((self.type, '[%s]' % ', '.join(map(str, self.inits))))
 
 
 class Declaration_list(Node):
@@ -238,8 +239,8 @@ class Declaration_list(Node):
     def addDeclaration(self, declaration):
         self.declarations.append(declaration)
 
-    def __str__(self):
-        return '[%s]' % ', '.join(map(str, self.declarations))
+    # def __str__(self):
+    #     return '[%s]' % ', '.join(map(str, self.declarations))
 
 class Compound_instr(Node):
 
@@ -253,8 +254,8 @@ class Compound_instr(Node):
     def addInstruction(self, instruction):
         self.instruction_list.instructions.append(instruction)
 
-    def __str__(self):
-        return str((str(self.declaration_list), str(self.instruction_list)))
+    # def __str__(self):
+    #     return str((str(self.declaration_list), str(self.instruction_list)))
 
 class Function_call(Node):
 
@@ -263,9 +264,9 @@ class Function_call(Node):
         self.name = name
         self.expressions = expressions
 
-    def __str__(self):
-
-        return str((str(self.name), str(self.expressions)))
+    # def __str__(self):
+    #
+    #     return str((str(self.name), str(self.expressions)))
 
 # class Scope(Node):
 #

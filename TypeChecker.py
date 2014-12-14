@@ -12,7 +12,7 @@ class NodeVisitor(object):
         return visitor(node)
 
 
-    def generic_visit(self, node):        # Called if no explicit visitor function exists for a node.
+    def generic_visit(self, node):
         if isinstance(node, list):
             for elem in node:
                 self.visit(elem)
@@ -24,12 +24,6 @@ class NodeVisitor(object):
                             self.visit(item)
                 elif isinstance(child, AST.Node):
                     self.visit(child)
-
-    # simpler version of generic_visit, not so general
-    #def generic_visit(self, node):
-    #    for child in node.children:
-    #        self.visit(child)
-
 
 
 class TypeChecker(NodeVisitor):
@@ -103,6 +97,7 @@ class TypeChecker(NodeVisitor):
         type1 = self.visit(node.left)
         type2 = self.visit(node.right)
         op    = node.op
+        # print str(node), type1, type2
         if type1 == -1 or type2 == -1:
             return -1
         if self.ttype.get(op) != None:
@@ -110,7 +105,7 @@ class TypeChecker(NodeVisitor):
                 if self.ttype[op][type1].get(type2) != None:
                     return self.ttype[op][type1][type2]
         print 'ERROR: Invalid operand\'s type, line ' + str(node.lineno)
-        print str(node), type1, type2
+        # print str(node), type1, type2
         return -1
 
 
@@ -149,6 +144,10 @@ class TypeChecker(NodeVisitor):
 
     def visit_Variable(self, node):
         # print node.name, node.vars.get(node.name)
+        col = node.vars.get(node.name)
+        if col == -1:
+            print 'ERROR: Undeclared variable, line %s' % node.lineno
+            return -1
         return node.vars.get(node.name)
 
     def visit_Instruction(self, node):
@@ -175,10 +174,16 @@ class TypeChecker(NodeVisitor):
         pass
 
     def visit_Function(self, node):
-        # uzupelnic symbol table
         errors = False
         if node.comp != None:
             node.comp.vars = VariableTable(node.vars)
+            for type, var in node.arguments:
+                col = node.comp.vars.collision(var)
+                if not col:
+                    node.comp.vars.put(var, type)
+                else:
+                    print 'ERROR: Variable already declared, line ' + str(node.lineno)
+                    errors = True
             collision = node.funcs.get(node.name)
             # print str(node)
             if collision == -1:
@@ -207,9 +212,13 @@ class TypeChecker(NodeVisitor):
             for init in node.inits:
                 init.vars = node.vars
                 init.funcs = node.funcs
-                name = self.visit(init)
-                if name != -1:
-                    node.vars.put(name, node.type)
+                res = self.visit(init)
+                if res != -1:
+                    if (res[1] == 'string' and node.type == 'string') or (res[1] != 'string' and node.type != 'string'):
+                        node.vars.put(res[0].name, node.type)
+                    else:
+                        print 'ERROR: Type mismatch while assigning, line %s' % res[0].lineno
+                        errors = True
                 else:
                     errors = True
         return errors
@@ -227,11 +236,12 @@ class TypeChecker(NodeVisitor):
 
     def visit_Compound_instr(self, node):
         errors = False
+        vt = VariableTable(node.vars)
         if node.instruction_list != None:
-            node.instruction_list.vars = VariableTable(node.vars)
+            node.instruction_list.vars = vt
             node.instruction_list.funcs = node.funcs
         if node.declaration_list != None:
-            node.declaration_list.vars = VariableTable(node.vars)
+            node.declaration_list.vars = vt
             node.declaration_list.funcs = node.funcs
         if self.visit(node.declaration_list):
             errors = True
@@ -241,6 +251,7 @@ class TypeChecker(NodeVisitor):
 
     def visit_Assignment(self, node):
         node.expression.vars = node.vars
+        node.expression.funcs = node.funcs
         type2 = self.visit(node.expression)
         # print type1, type2
         type1 = node.vars.get(node.name)
@@ -255,34 +266,87 @@ class TypeChecker(NodeVisitor):
 
     def visit_Init(self, node):
         collision = node.vars.collision(node.name)
-        # print node.vars.dictionary
+        # print str(node)
         if collision:
             print 'ERROR: Variable already declared, line ' + str(node.lineno)
             return -1
-        return node.name
+        node.expression.vars = node.vars
+        node.expression.funcs = node.funcs
+        type = self.visit(node.expression)
+        if type == -1:
+            return -1
+        return node, type
 
     def visit_PrintInstruction(self, node):
-        pass
+        node.expression.vars = node.vars
+        node.expression.funcs = node.funcs
+        t = self.visit(node.expression)
+        # print str(t), str(node)
+        return t
 
 
     def visit_LabeledInstruction(self, node):
-        pass
+        errors = False
+        if node.instruction != None:
+            node.instruction.vars = node.vars
+            node.instruction.funcs = node.funcs
+            errors = self.visit(node.instruction)
+            if errors == -1:
+                errors = True
+        return errors
 
 
     def visit_ChoiceInstruction(self, node):
-        pass
-
+        node.condition.vars = node.vars
+        node.condition.funcs = node.funcs
+        ret_c = self.visit(node.condition)
+        ret_i = False
+        ret_e = False
+        if node.instruction != None:
+            node.instruction.vars = node.vars
+            node.instruction.funcs = node.funcs
+            ret_i = self.visit(node.instruction)
+        if node.elseinstruction != None:
+            node.elseinstruction.vars = node.vars
+            node.elseinstruction.funcs = node.funcs
+            ret_e = self.visit(node.elseinstruction)
+        if ret_c == -1 or ret_i or ret_e:
+            return True
+        return False
 
     def visit_WhileInstruction(self, node):
-        pass
+        node.condition.vars = node.vars
+        node.condition.funcs = node.funcs
+        ret_c = self.visit(node.condition)
+        ret_i = False
+        if node.instruction != None:
+            node.instruction.vars = node.vars
+            node.instruction.funcs = node.funcs
+            ret_i = self.visit(node.instruction)
+        if ret_c == -1 or ret_i or ret_e:
+            return True
+        return False
 
 
     def visit_RepeatInstruction(self, node):
-        pass
+        node.condition.vars = node.vars
+        node.condition.funcs = node.funcs
+        ret_c = self.visit(node.condition)
+        ret_i = False
+        if node.instruction != None:
+            node.instruction.vars = node.vars
+            node.instruction.funcs = node.funcs
+            ret_i = self.visit(node.instruction)
+        if ret_c == -1 or ret_i or ret_e:
+            return True
+        return False
 
 
     def visit_ReturnInstruction(self, node):
-        pass
+        node.expression.vars = node.vars
+        node.expression.funcs = node.funcs
+        t = self.visit(node.expression)
+        return t
 
 
     def visit_ContinueInstruction(self, node):
@@ -293,3 +357,24 @@ class TypeChecker(NodeVisitor):
         pass
 
 
+    def visit_Function_call(self, node):
+        fun = node.funcs.get(node.name)
+        if fun == -1:
+            print 'ERROR: Undeclared function, line %s' % node.lineno
+            return -1
+        if len(node.expressions.expressions) != len(fun[1]):
+            print 'ERROR: Wrong number of arguments, line %s' % node.lineno
+            return -1
+        for i in xrange(len(node.expressions.expressions)):
+            type = fun[1][i][0]
+            node.expressions.expressions[i].vars = node.vars
+            node.expressions.expressions[i].funcs = node.funcs
+            match = self.visit(node.expressions.expressions[i])
+            if (type != 'string' and match != 'string') or (type == 'string' and match == 'string'):
+                if type != match and type == 'float':
+                    print 'WARNING: Implicit convertion in argument %s, line %s' % (i,node.lineno)
+            else:
+                print 'ERROR: Type mismatch in argument %s, line %s' % (i, node.lineno)
+                return -1
+        return fun[0]
+        

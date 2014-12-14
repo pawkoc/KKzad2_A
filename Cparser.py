@@ -76,7 +76,6 @@ class Cparser(object):
 
         p[0] = Program(dec, funs, instr)
 
-
     def p_declarations(self, p):
         """declarations : declarations declaration
                         | """
