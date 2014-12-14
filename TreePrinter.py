@@ -203,6 +203,7 @@ class TreePrinter:
         result += self.instruction.printTree(indent+1)
 
         if(self.elseinstruction != None):
+            result += addIndent(indent) + "ELSE\n"
             result += self.elseinstruction.printTree(indent+1)
 
         return result

@@ -1,49 +1,21 @@
-int x= 1;
-int abc = 123, b = (90 - 2);
-string k = "abc";
+float a = 0, b = 0, c = 0;
 
-int b() {
-    int x=1, c=12;
-    float q=1, z=12;
-    print 1+1;
+int gcd(int m, int n) {
 
-    if(a == 2) {
-        print "yes";
+int res = 0;
+if (m!=n) { 
+    if (m > n) 
+        res = gcd(m-n, n);
+    else
+        res = gcd(n-m, m);
+}
+else
+    res = m;
 
-
-        while(a >= b ) {
-            a = 1/2*(a+b/a);
-            break;
-        }
-
-        a : print x;
-    }
-
-    print fun2(12, 13);
-
-    print x + y - 2*(12+2);
-
-    continue;
-
-    return x;
+print res;
+return res;
 }
 
-int fun2(int a, int b, int c) {
-
-    int a = 12;
-    float b = 12.12;
+while(a >= b ) {
+    a = 1/2*(a+b/a);
 }
-
-int fun2(int x) {
-
-    print x;
-    print y;
-    print u;
-}
-
-print 9 + (8 * 7 + 8);
-print 1 + 1;
-print 2 - 3;
-
-x = fun2(1, 2, 3);
-y = fun2(1, 2, 3);
