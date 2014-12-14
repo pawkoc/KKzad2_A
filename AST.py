@@ -162,10 +162,11 @@ class Expression_list(Node):
         self.expressions.append(expression)
 
     def __str__(self):
-        lista = []
-        for i in self.expressions:
-            lista.append(str(i))
-        return ' '.join(lista)
+        # lista = []
+        # for i in self.expressions:
+        #     lista.append(str(i))
+        # return ' '.join(lista)
+        return '[%s]' % ', '.join(map(str, self.expressions))
 
 
 class Function(Node):
@@ -255,6 +256,16 @@ class Compound_instr(Node):
     def __str__(self):
         return str((str(self.declaration_list), str(self.instruction_list)))
 
+class Function_call(Node):
+
+    def __init__(self, lineno, name, expressions):
+        self.lineno = lineno
+        self.name = name
+        self.expressions = expressions
+
+    def __str__(self):
+
+        return str((str(self.name), str(self.expressions)))
 
 # class Scope(Node):
 #
