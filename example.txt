@@ -1,11 +1,16 @@
-int a = 10;
-float x = 10.902, y = 123.2314;
-string a = "ala", b = "123";
+int  x = 1;
 
 int b() {
     int x=1, c=12;
-    float x=1, c=12;
+    float y=1, z=12;
     print 1+1;
+
+    if(a == 2) {
+        print "yes";
+
+    } else {
+        print "no";
+    }
 
     print x + y - 2*(12+2);
 }
@@ -18,3 +23,11 @@ int fun2(int a) {
 print 9 + (8 * 7 + 8);
 print 1 + 1;
 print 2 - 3;
+
+while(a > 2) {
+
+    int abc = 120;
+
+    print abc;
+    a = a - 1;
+}

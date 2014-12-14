@@ -2,7 +2,6 @@
 
 from SymbolTable import VariableTable
 from SymbolTable import FunctionTable
-
 import AST
 
 class NodeVisitor(object):
