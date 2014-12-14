@@ -185,7 +185,7 @@ class Cparser(object):
     def p_continue_instr(self, p):
         """continue_instr : CONTINUE ';' """
 
-        p[0] = ContinueInstructoion()
+        p[0] = ContinueInstruction()
 
     def p_break_instr(self, p):
         """break_instr : BREAK ';' """
@@ -277,7 +277,14 @@ class Cparser(object):
         if len(p) == 4:
             p[0] = p[2]
         else:
-            p[0] = (p[1], p[2])
+
+            list_expr = Expression_list()
+
+            for expr in p[3]:
+                list_expr.addExpression(expr)
+
+            funcall = Function_call(p.lineno(1), p[1], list_expr)
+            p[0] = funcall
 
     def p_expr_list_or_empty(self, p):
         """expr_list_or_empty : expr_list

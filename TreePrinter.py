@@ -33,8 +33,34 @@ class TreePrinter:
         pass
 
     @addToClass(AST.Program)
-    def printTree(self):
-        pass
+    def printTree(self, indent):
+        result = ""
+        if self.declarations != None:
+            result += "DECL\n"
+            result += addIndent(indent)
+            result += self.declarations.printTree(indent)
+        result += addIndent(indent)
+        result += self.fundefs.printTree(indent)
+        result += addIndent(indent)
+        result += self.instructions.printTree(indent)
+        return result
+
+    @addToClass(AST.Declaration_list)
+    def printTree(self, indent):
+        result = ""
+        if self.declarations != None:
+            result += self.declarations.printTree(indent)
+        if self.declaration != None:
+            result += self.declaration.printTree(indent)
+        return result
+
+    @addToClass(AST.Declaration)
+    def printTree(self, indent):
+        result = ""
+        if self.inits is None:
+            result =+ self.type
+        result += self.inits.printTree(indent)
+        return result
 
     @addToClass(AST.Const)
     def printTree(self):
