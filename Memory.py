@@ -1,5 +1,4 @@
 
-
 class Memory:
 
     def __init__(self, name): # memory name
@@ -19,24 +18,25 @@ class Memory:
 class MemoryStack:
                                                                              
     def __init__(self, memory=None): # initialize memory stack with memory <memory>
-        stack = []
-        if memory != None:
-            stack.append(memory)
+        self.stack = []
+        if memory is not None:
+            self.stack.append(memory)
 
     def get(self, name):             # get from memory stack current value of variable <name>
-        for i in reversed(xrange(len(stack))):
-            if stack[i].has_key(name):
-                return stack[i].get(name)
+        for i in reversed(xrange(len(self.stack))):
+            if self.stack[i].has_key(name):
+                return self.stack[i].get(name)
         return None
 
     def insert(self, name, value): # inserts into memory stack variable <name> with value <value>
-        stack[-1].put(name, value)
+        self.stack[-1].put(name, value)
 
     def set(self, name, value): # sets variable <name> to value <value>
-        for i in reversed(xrange(len(stack))):
-            if stack[i].has_key(name):
-                stack[i].put(name, value)
-                return
+        for i in reversed(xrange(len(self.stack))):
+            if self.stack[i].has_key(name):
+                self.stack[i].put(name, value)
+                return True
+        return False
 
     def push(self, memory): # push memory <memory> onto the stack
         self.stack.append(memory)

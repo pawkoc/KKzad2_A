@@ -4,7 +4,7 @@ import AST
 from Cparser import Cparser
 import TreePrinter
 from TypeChecker import TypeChecker
-
+import Interpreter
 
 if __name__ == '__main__':
 
@@ -20,10 +20,12 @@ if __name__ == '__main__':
     text = file.read()
     p = parser.parse(text, lexer=Cparser.scanner)
 
-    # print p
     print p
-        # t = TreePrinter.TreePrinter()
-        # t.printTree()
+    # t = TreePrinter.TreePrinter()
+    # t.printTree()
     TC = TypeChecker()
     #
     TC.visit(p)
+
+    intrepreter = Interpreter.Interpreter()
+    p.accept(intrepreter)

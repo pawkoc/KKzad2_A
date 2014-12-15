@@ -323,7 +323,7 @@ class TypeChecker(NodeVisitor):
             node.instruction.vars = node.vars
             node.instruction.funcs = node.funcs
             ret_i = self.visit(node.instruction)
-        if ret_c == -1 or ret_i or ret_e:
+        if ret_c == -1 or ret_i: #or ret_e:
             return True
         return False
 
@@ -337,7 +337,7 @@ class TypeChecker(NodeVisitor):
             node.instruction.vars = node.vars
             node.instruction.funcs = node.funcs
             ret_i = self.visit(node.instruction)
-        if ret_c == -1 or ret_i or ret_e:
+        if ret_c == -1 or ret_i: #or ret_e:
             return True
         return False
 

@@ -3,11 +3,9 @@ class Node(object):
 
     def __str__(self):
         return self.printTree(0)
-        # return "ALA120"
 
     def accept(self, visitor):
         return visitor.visit(self)
-
 
 class BinExpr(Node):
 
@@ -39,13 +37,16 @@ class Const(Node):
     #     return self.value
 
 class Integer(Const):
-    pass
+    def __init__(self, value):
+        self.value = int(value)
 
 class Float(Const):
-    pass
+    def __init__(self, value):
+        self.value = float(value)
 
 class String(Const):
-    pass
+    def __init__(self, value):
+        self.value = value
 
 
 class Variable(Node):
