@@ -134,6 +134,7 @@ class TypeChecker(NodeVisitor):
         err_d = self.visit(node.declarations)
         err_f = self.visit(node.fundefs)
         err_i = self.visit(node.instructions)
+
         return err_d or err_f or err_i
 
     def visit_Const(self, node):
@@ -149,16 +150,6 @@ class TypeChecker(NodeVisitor):
             print 'ERROR: Undeclared variable, line %s' % node.lineno
             return -1
         return node.vars.get(node.name)
-
-    def visit_Instruction(self, node):
-        errors = False
-        if node.expr != None:
-            node.expr.vars = node.vars
-            node.expr.funcs = node.funcs
-            # print str(node)
-            if self.visit(node.expr) == -1:
-                errors = True
-        return errors
 
     def visit_Instruction_list(self, node):
         errors = False
@@ -192,6 +183,7 @@ class TypeChecker(NodeVisitor):
                 print 'ERROR: Function already declared, line ' + str(node.lineno)
                 errors = True
             node.comp.funcs = node.funcs
+            node.comp.isFunction = True
             if self.visit(node.comp):
                 errors = True
         return errors
@@ -226,7 +218,6 @@ class TypeChecker(NodeVisitor):
                 else:
                     errors = True
         return errors
-                # print ' ' + name, node.type
 
     def visit_Declaration_list(self, node):
         errors = False
@@ -240,7 +231,12 @@ class TypeChecker(NodeVisitor):
 
     def visit_Compound_instr(self, node):
         errors = False
-        vt = VariableTable(node.vars)
+        if hasattr(node, "isFunction"):
+            vt = node.vars
+
+        else:
+            vt = VariableTable(node.vars)
+
         if node.instruction_list != None:
             node.instruction_list.vars = vt
             node.instruction_list.funcs = node.funcs
@@ -251,6 +247,7 @@ class TypeChecker(NodeVisitor):
             errors = True
         if self.visit(node.instruction_list):
             errors = True
+
         return errors
 
     def visit_Assignment(self, node):
@@ -263,13 +260,13 @@ class TypeChecker(NodeVisitor):
             if (type1 != 'string' and type2 != 'string') or (type1 == 'string' and type2 == 'string'):
                 if type1 == 'int' and type2 == 'float':
                     print 'WARNING: Implicit convertion, line %s' % (node.lineno)
-                return type1
+                return False
 
         if type1 == -1:
             print 'ERROR: Undeclared variable, line %s' % node.lineno
-            return -1
+            return True
         print 'ERROR: Type mismatch while assigning, line %s' % node.lineno
-        return -1
+        return True
 
     def visit_Init(self, node):
         collision = node.vars.collision(node.name)
@@ -289,7 +286,7 @@ class TypeChecker(NodeVisitor):
         node.expression.funcs = node.funcs
         t = self.visit(node.expression)
         # print str(t), str(node)
-        return t
+        return t == -1
 
 
     def visit_LabeledInstruction(self, node):
@@ -353,15 +350,15 @@ class TypeChecker(NodeVisitor):
         node.expression.vars = node.vars
         node.expression.funcs = node.funcs
         t = self.visit(node.expression)
-        return t
+        return t == -1
 
 
     def visit_ContinueInstruction(self, node):
-        pass
+        return False
 
 
     def visit_BreakInstruction(self, node):
-        pass
+        return False
 
 
     def visit_Function_call(self, node):

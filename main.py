@@ -20,12 +20,9 @@ if __name__ == '__main__':
     text = file.read()
     p = parser.parse(text, lexer=Cparser.scanner)
 
-    print p
-    # t = TreePrinter.TreePrinter()
-    # t.printTree()
     TC = TypeChecker()
-    #
     TC.visit(p)
-
+    # if not TC.visit(p):
+    print p
     intrepreter = Interpreter.Interpreter()
     p.accept(intrepreter)

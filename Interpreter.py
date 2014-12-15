@@ -41,7 +41,7 @@ class Interpreter(object):
         r1 = node.left.accept(self)
         r2 = node.right.accept(self)
 
-        print "binary expr"
+        print "binary expr, result: %s"%operator_map[node.op](r1, r2)
         return operator_map[node.op](r1, r2)
 
     @when(AST.Integer)
@@ -73,15 +73,10 @@ class Interpreter(object):
     def visit(self, node):
         print 'declaration'
 
-        # declarationList = []
         for init in node.inits:
-            # declarationList.append(init.accept(self))
 
             initResult = init.accept(self)
-            # print initResult[1]
             self.mainMemory.insert(initResult[0], initResult[1])
-
-            # return declarationList
 
     @when(AST.Init)
     def visit(self, node):
@@ -90,11 +85,6 @@ class Interpreter(object):
         expression = node.expression.accept(self)
 
         return (name, expression)
-
-    # @when(AST.Assignment)
-    # def visit(self, node):
-
-
 
     @when(AST.Function_list)
     def visit(self, node):
