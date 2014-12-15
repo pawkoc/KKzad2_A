@@ -108,8 +108,8 @@ class Interpreter(object):
     def visit(self, node):
         print 'fundef'
 
-        tmp_fun = AST.Function(node.type, node.name, node.arguments, node.comp, node.lineno)
-        self.mainMemory.insert(tmp_fun.name, tmp_fun)
+        # tmp_fun = AST.Function(node.type, node.name, node.arguments, node.comp, node.lineno)
+        # self.mainMemory.insert(tmp_fun.name, tmp_fun)
 
 
     @when(AST.Instruction_list)
@@ -163,7 +163,6 @@ class Interpreter(object):
         print "Function_call"
 
         function = self.mainMemory.get(node.name)
-        print function
         argValues = node.expressions.accept(self)
 
         self.functionMemory.push(Memory(node.name))

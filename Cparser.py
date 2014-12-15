@@ -265,7 +265,7 @@ class Cparser(object):
                       | expression LE expression
                       | expression GE expression """
 
-        p[0] = BinExpr(op=p[2], left=p[1], right=p[3], lineno=p.lineno(1))
+        p[0] = BinExpr(op=p[2], left=p[1], right=p[3], lineno=p.lineno(2))
 
     def p_expression(self, p):
         """expression : '(' expression ')'

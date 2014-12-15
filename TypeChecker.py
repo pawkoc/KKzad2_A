@@ -215,7 +215,11 @@ class TypeChecker(NodeVisitor):
                 res = self.visit(init)
                 if res != -1:
                     if (res[1] == 'string' and node.type == 'string') or (res[1] != 'string' and node.type != 'string'):
+                        if node.type == 'int' and res[1] == 'float':
+                            print 'WARNING: Implicit convertion, line %s' % (res[0].lineno)
+
                         node.vars.put(res[0].name, node.type)
+
                     else:
                         print 'ERROR: Type mismatch while assigning, line %s' % res[0].lineno
                         errors = True
@@ -253,11 +257,14 @@ class TypeChecker(NodeVisitor):
         node.expression.vars = node.vars
         node.expression.funcs = node.funcs
         type2 = self.visit(node.expression)
-        # print type1, type2
         type1 = node.vars.get(node.name)
+        # print type1, type2
         if type1 != -1 and type2 != -1:
             if (type1 != 'string' and type2 != 'string') or (type1 == 'string' and type2 == 'string'):
+                if type1 == 'int' and type2 == 'float':
+                    print 'WARNING: Implicit convertion, line %s' % (node.lineno)
                 return type1
+
         if type1 == -1:
             print 'ERROR: Undeclared variable, line %s' % node.lineno
             return -1
