@@ -159,21 +159,21 @@ class Cparser(object):
                         | IF '(' error ')' instruction ELSE instruction """
 
         if len(p) == 6:
-            p[0] = ChoiceInstruction(p.lineno(1), p[3], p[5])
+            p[0] = ChoiceInstruction(p.lineno(2), p[3], p[5])
         else:
-            p[0] = ChoiceInstruction(p.lineno(1), p[3], p[5], p[7])
+            p[0] = ChoiceInstruction(p.lineno(2), p[3], p[5], p[7])
 
     def p_while_instr(self, p):
         """while_instr : WHILE '(' condition ')' instruction
                        | WHILE '(' error ')' instruction """
 
-        p[0] = WhileInstruction(p.lineno(1), p[3], p[5])
+        p[0] = WhileInstruction(p.lineno(2), p[3], p[5])
 
 
     def p_repeat_instr(self, p):
         """repeat_instr : REPEAT instructions UNTIL condition ';' """
 
-        p[0] = RepeatInstruction(p.lineno(1), p[2], p[4])
+        p[0] = RepeatInstruction(p.lineno(3), p[2], p[4])
 
 
     def p_return_instr(self, p):
@@ -184,12 +184,12 @@ class Cparser(object):
     def p_continue_instr(self, p):
         """continue_instr : CONTINUE ';' """
 
-        p[0] = ContinueInstruction()
+        p[0] = ContinueInstruction(p.lineno(1))
 
     def p_break_instr(self, p):
         """break_instr : BREAK ';' """
 
-        p[0] = BreakInstruction()
+        p[0] = BreakInstruction(p.lineno(1))
 
     def p_compound_instr(self, p):
         """compound_instr : '{' new_scope declarations instructions '}' """

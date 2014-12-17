@@ -157,6 +157,10 @@ class TypeChecker(NodeVisitor):
             for instr in node.instructions:
                 instr.vars = node.vars
                 instr.funcs = node.funcs
+                if hasattr(node, "retType"):
+                    instr.retType = node.retType
+                if hasattr(node, "inLoop"):
+                    instr.inLoop = True
                 if self.visit(instr):
                     errors = True
         return errors
@@ -175,16 +179,12 @@ class TypeChecker(NodeVisitor):
                 else:
                     print 'ERROR: Variable already declared, line ' + str(node.lineno)
                     errors = True
-            collision = node.funcs.get(node.name)
-            # print str(node)
-            if collision == -1:
-                node.funcs.put(node.name, node.type, node.arguments)
-            else:
-                print 'ERROR: Function already declared, line ' + str(node.lineno)
-                errors = True
             node.comp.funcs = node.funcs
             node.comp.isFunction = True
+            node.comp.retType = node.type
             if self.visit(node.comp):
+                if not node.comp.hasReturn:
+                    print 'ERROR: Function \'%s\' has no return statement, line %s' % (node.name, str(node.lineno))
                 errors = True
         return errors
 
@@ -194,6 +194,13 @@ class TypeChecker(NodeVisitor):
             for func in node.functions:
                 func.funcs = node.funcs
                 func.vars = node.vars
+                collision = node.funcs.get(func.name)
+                if collision == -1:
+                    node.funcs.put(func.name, func.type, func.arguments)
+                else:
+                    print 'ERROR: Function already declared, line ' + str(func.lineno)
+                    errors = True
+            for func in node.functions:
                 if self.visit(func):
                     errors = True
         return errors
@@ -233,6 +240,13 @@ class TypeChecker(NodeVisitor):
         errors = False
         if hasattr(node, "isFunction"):
             vt = node.vars
+            node.hasReturn = False
+            for instr in node.instruction_list.instructions:
+                if isinstance(instr, AST.ReturnInstruction):
+                    node.hasReturn = True
+                    break
+            if not node.hasReturn:
+                errors = True
 
         else:
             vt = VariableTable(node.vars)
@@ -240,6 +254,10 @@ class TypeChecker(NodeVisitor):
         if node.instruction_list != None:
             node.instruction_list.vars = vt
             node.instruction_list.funcs = node.funcs
+            if hasattr(node, "retType"):
+                node.instruction_list.retType = node.retType
+            if hasattr(node, "inLoop"):
+                node.instruction_list.inLoop = True
         if node.declaration_list != None:
             node.declaration_list.vars = vt
             node.declaration_list.funcs = node.funcs
@@ -265,7 +283,9 @@ class TypeChecker(NodeVisitor):
         if type1 == -1:
             print 'ERROR: Undeclared variable, line %s' % node.lineno
             return True
-        print 'ERROR: Type mismatch while assigning, line %s' % node.lineno
+        if type2 == -1:
+            return True
+        print 'ERROR: Type mismatch in assignment, line %s' % node.lineno
         return True
 
     def visit_Init(self, node):
@@ -285,7 +305,6 @@ class TypeChecker(NodeVisitor):
         node.expression.vars = node.vars
         node.expression.funcs = node.funcs
         t = self.visit(node.expression)
-        # print str(t), str(node)
         return t == -1
 
 
@@ -294,6 +313,10 @@ class TypeChecker(NodeVisitor):
         if node.instruction != None:
             node.instruction.vars = node.vars
             node.instruction.funcs = node.funcs
+            if hasattr(node, "retType"):
+                node.instruction.retType = node.retType
+            if hasattr(node, "inLoop"):
+                node.instruction.inLoop = True
             errors = self.visit(node.instruction)
             if errors == -1:
                 errors = True
@@ -309,11 +332,24 @@ class TypeChecker(NodeVisitor):
         if node.instruction != None:
             node.instruction.vars = node.vars
             node.instruction.funcs = node.funcs
+            if hasattr(node, "retType"):
+                node.instruction.retType = node.retType
+            if hasattr(node, "inLoop"):
+                node.instruction.inLoop = True
             ret_i = self.visit(node.instruction)
         if node.elseinstruction != None:
             node.elseinstruction.vars = node.vars
             node.elseinstruction.funcs = node.funcs
+            if hasattr(node, "retType"):
+                node.elseinstruction.retType = node.retType
+            if hasattr(node, "inLoop"):
+                node.elseinstruction.inLoop = True
             ret_e = self.visit(node.elseinstruction)
+        if ret_c == 'string':
+            print 'ERROR: Condition type must be \'int\', line %s' % node.lineno
+            return True
+        if ret_c == 'float':
+            print 'WARNING: Implicit conversion to \'int\' in condition, line %s' % node.lineno
         if ret_c == -1 or ret_i or ret_e:
             return True
         return False
@@ -326,8 +362,16 @@ class TypeChecker(NodeVisitor):
         if node.instruction != None:
             node.instruction.vars = node.vars
             node.instruction.funcs = node.funcs
+            if hasattr(node, "retType"):
+                node.instruction.retType = node.retType
+            node.instruction.inLoop = True
             ret_i = self.visit(node.instruction)
-        if ret_c == -1 or ret_i: #or ret_e:
+        if ret_c == 'string':
+            print 'ERROR: Condition type must be \'int\', line %s' % node.lineno
+            return True
+        if ret_c == 'float':
+            print 'WARNING: Implicit conversion to \'int\' in condition, line %s' % node.lineno
+        if ret_c == -1 or ret_i:
             return True
         return False
 
@@ -337,11 +381,22 @@ class TypeChecker(NodeVisitor):
         node.condition.funcs = node.funcs
         ret_c = self.visit(node.condition)
         ret_i = False
-        if node.instruction != None:
-            node.instruction.vars = node.vars
-            node.instruction.funcs = node.funcs
-            ret_i = self.visit(node.instruction)
-        if ret_c == -1 or ret_i: #or ret_e:
+        errors = False
+        if node.instructions != None:
+            for instr in node.instructions:
+                instr.vars = node.vars
+                instr.funcs = node.funcs
+                if hasattr(node, "retType"):
+                    instr.retType = node.retType
+                instr.inLoop = True
+                ret_i = self.visit(instr)
+                errors = ret_i or errors
+        if ret_c == 'string':
+            print 'ERROR: Condition type must be \'int\', line %s' % node.lineno
+            return True
+        if ret_c == 'float':
+            print 'WARNING: Implicit conversion to \'int\' in condition, line %s' % node.lineno
+        if ret_c == -1 or ret_i:
             return True
         return False
 
@@ -349,16 +404,36 @@ class TypeChecker(NodeVisitor):
     def visit_ReturnInstruction(self, node):
         node.expression.vars = node.vars
         node.expression.funcs = node.funcs
-        t = self.visit(node.expression)
-        return t == -1
+        if hasattr(node, "retType"):
+            t = self.visit(node.expression)
+            if t == node.retType:
+                return False
+            if node.retType == 'float' and t == 'int':
+                return False
+            if node.retType == 'int' and t == 'float':
+                print 'WARNING: Implicit convertion in return statement, line %s' % node.lineno
+                return False
+            if t != -1:
+                print 'ERROR: Type mismatch in return statement, line %s' % node.lineno
+            return True
+        else:
+            print 'ERROR: Return statement outside of a function, line %s' % node.lineno
+            return True
+
 
 
     def visit_ContinueInstruction(self, node):
-        return False
+        if hasattr(node, "inLoop"):
+            return False
+        print 'ERROR: Continue statement outside of a loop, line %s' % node.lineno
+        return True
 
 
     def visit_BreakInstruction(self, node):
-        return False
+        if hasattr(node, "inLoop"):
+            return False
+        print 'ERROR: Break statement outside of a loop, line %s' % node.lineno
+        return True
 
 
     def visit_Function_call(self, node):
@@ -375,7 +450,7 @@ class TypeChecker(NodeVisitor):
             node.expressions.expressions[i].funcs = node.funcs
             match = self.visit(node.expressions.expressions[i])
             if (type != 'string' and match != 'string') or (type == 'string' and match == 'string'):
-                if type != match and type == 'float':
+                if type != match and type == 'int':
                     print 'WARNING: Implicit convertion in argument %s, line %s' % (i,node.lineno)
             else:
                 print 'ERROR: Type mismatch in argument %s, line %s' % (i, node.lineno)

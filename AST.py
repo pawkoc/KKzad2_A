@@ -144,12 +144,14 @@ class ReturnInstruction(Node):
     #     return str(('RETURN', str(self.expression)))
 
 class ContinueInstruction(Node):
-    pass
+    def __init__(self, lineno):
+        self.lineno = lineno
     # def __str__(self):
     #     return 'CONTINUE'
 
 class BreakInstruction(Node):
-    pass
+    def __init__(self, lineno):
+        self.lineno = lineno
     # def __str__(self):
     #     return 'BREAK'
 
