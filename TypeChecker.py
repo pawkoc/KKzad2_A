@@ -183,8 +183,8 @@ class TypeChecker(NodeVisitor):
             node.comp.isFunction = True
             node.comp.retType = node.type
             if self.visit(node.comp):
-                if not node.comp.hasReturn:
-                    print 'ERROR: Function \'%s\' has no return statement, line %s' % (node.name, str(node.lineno))
+                # if not node.comp.hasReturn:
+                #     print 'ERROR: Function \'%s\' has no return statement, line %s' % (node.name, str(node.lineno))
                 errors = True
         return errors
 
@@ -215,7 +215,7 @@ class TypeChecker(NodeVisitor):
                 if res != -1:
                     if (res[1] == 'string' and node.type == 'string') or (res[1] != 'string' and node.type != 'string'):
                         if node.type == 'int' and res[1] == 'float':
-                            print 'WARNING: Implicit convertion, line %s' % (res[0].lineno)
+                            print 'WARNING: Implicit conversion, line %s' % (res[0].lineno)
 
                         node.vars.put(res[0].name, node.type)
 
@@ -240,13 +240,13 @@ class TypeChecker(NodeVisitor):
         errors = False
         if hasattr(node, "isFunction"):
             vt = node.vars
-            node.hasReturn = False
-            for instr in node.instruction_list.instructions:
-                if isinstance(instr, AST.ReturnInstruction):
-                    node.hasReturn = True
-                    break
-            if not node.hasReturn:
-                errors = True
+            # node.hasReturn = False
+            # for instr in node.instruction_list.instructions:
+            #     if isinstance(instr, AST.ReturnInstruction):
+            #         node.hasReturn = True
+            #         break
+            # if not node.hasReturn:
+            #     errors = True
 
         else:
             vt = VariableTable(node.vars)
@@ -277,7 +277,7 @@ class TypeChecker(NodeVisitor):
         if type1 != -1 and type2 != -1:
             if (type1 != 'string' and type2 != 'string') or (type1 == 'string' and type2 == 'string'):
                 if type1 == 'int' and type2 == 'float':
-                    print 'WARNING: Implicit convertion, line %s' % (node.lineno)
+                    print 'WARNING: Implicit conversion, line %s' % (node.lineno)
                 return False
 
         if type1 == -1:
@@ -411,7 +411,7 @@ class TypeChecker(NodeVisitor):
             if node.retType == 'float' and t == 'int':
                 return False
             if node.retType == 'int' and t == 'float':
-                print 'WARNING: Implicit convertion in return statement, line %s' % node.lineno
+                print 'WARNING: Implicit conversion in return statement, line %s' % node.lineno
                 return False
             if t != -1:
                 print 'ERROR: Type mismatch in return statement, line %s' % node.lineno
@@ -451,7 +451,7 @@ class TypeChecker(NodeVisitor):
             match = self.visit(node.expressions.expressions[i])
             if (type != 'string' and match != 'string') or (type == 'string' and match == 'string'):
                 if type != match and type == 'int':
-                    print 'WARNING: Implicit convertion in argument %s, line %s' % (i,node.lineno)
+                    print 'WARNING: Implicit conversion in argument %s, line %s' % (i,node.lineno)
             else:
                 print 'ERROR: Type mismatch in argument %s, line %s' % (i, node.lineno)
                 return -1
