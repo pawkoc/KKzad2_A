@@ -41,7 +41,6 @@ class Interpreter(object):
         r1 = node.left.accept(self)
         r2 = node.right.accept(self)
 
-        print "binary expr, result: %s"%operator_map[node.op](r1, r2)
         return operator_map[node.op](r1, r2)
 
     @when(AST.Integer)
@@ -65,13 +64,13 @@ class Interpreter(object):
 
     @when(AST.Declaration_list)
     def visit(self, node):
-        print "decl list"
+        # print "decl list"
         for decl in node.declarations:
             decl.accept(self)
 
     @when(AST.Declaration)
     def visit(self, node):
-        print 'declaration'
+        # print 'declaration'
 
         for init in node.inits:
 
@@ -80,7 +79,7 @@ class Interpreter(object):
 
     @when(AST.Init)
     def visit(self, node):
-        print "init"
+        # print "init"
         name = node.name
         expression = node.expression.accept(self)
 
@@ -88,11 +87,21 @@ class Interpreter(object):
 
     @when(AST.Function_list)
     def visit(self, node):
-        print "fundefs"
+        # print "fundefs"
 
         for fundef in node.functions:
             fundef.accept(self)
 
+
+    @when(AST.ChoiceInstruction)
+    def visit(self,node):
+        if node.condition.accept(self):
+            return node.instruction.accept(self)
+        else:
+            if node.elseinstruction is not None:
+                return node.elseinstruction.accept(self)
+            else:
+                return False
 
     @when(AST.Function)
     def visit(self, node):
@@ -105,28 +114,32 @@ class Interpreter(object):
     @when(AST.Instruction_list)
     def visit(self, node):
 
-        print 'instruction list'
+        # print 'instruction list'
 
         for instr in node.instructions:
-            instr.accept(self)
+
+            try:
+                instr.accept(self)
+            except ReturnValueException as e:
+                return e.value
 
 
     @when(AST.PrintInstruction)
     def visit(self, node):
         print "Print instruction"
 
-        node.expression.accept(self)
+        print node.expression.accept(self)
 
     @when(AST.LabeledInstruction)
     def visit(self, node):
 
-        print "Labeled instruction"
+        # print "Labeled instruction"
         node.instruction.accept(self)
 
     @when(AST.Assignment)
     def visit(self, node):
 
-        print "Assignment"
+        # print "Assignment"
 
         value = node.expression.accept(self)
 
@@ -135,10 +148,12 @@ class Interpreter(object):
 
         return value
 
+
+
     @when(AST.Variable)
     def visit(self, node):
 
-        print "Variable"
+        # print "Variable"
 
         value = self.functionMemory.get(node.name)
 
@@ -150,7 +165,7 @@ class Interpreter(object):
     @when(AST.Function_call)
     def visit(self, node):
 
-        print "Function_call"
+        # print "Function_call"
 
         function = self.mainMemory.get(node.name)
         argValues = node.expressions.accept(self)
@@ -179,14 +194,35 @@ class Interpreter(object):
 
         return node.value
 
-    #
-    # # simplistic while loop interpretation
-    # @when(AST.WhileInstr)
-    # def visit(self, node):
-    #     r = None
-    #     while node.cond.accept(self):
-    #         r = node.body.accept(self)
-    #     return r
+    @when(AST.WhileInstruction)
+    def visit(self, node):
+        r = None
+        try:
+            while node.condition.accept(self):
+                try:
+                    r = node.instruction.accept(self)
+                except ContinueException:
+                    r = None
+        except BreakException:
+            r = None
+        return r
+
+    @when(AST.RepeatInstruction)
+    def visit(self,node):
+        r = None
+        try:
+            while True:
+                try:
+                    for instr in node.instructions:
+                        r = instr.accept(self)
+                except ContinueException:
+                    r=None
+                    continue
+                if node.condition.accept(self):
+                    break
+        except BreakException:
+            r = None
+        return r
 
     @when(AST.BreakInstruction)
     def visit(self, node):
@@ -195,3 +231,20 @@ class Interpreter(object):
     @when(AST.ContinueInstruction)
     def visit(self, node):
         raise ContinueException()
+
+    @when(AST.Compound_instr)
+    def visit(self, node):
+        self.mainMemory.push(Memory('compound'))
+        self.functionMemory.push(Memory('compound'))
+        try:
+            node.declaration_list.accept(self)
+            node.instruction_list.accept(self)
+        except Exception as e:
+            raise e
+        finally:
+            self.mainMemory.pop()
+            self.functionMemory.pop()
+
+    @when(AST.ReturnInstruction)
+    def visit(self,node):
+        raise ReturnValueException(node.expression.accept(self))

@@ -456,4 +456,3 @@ class TypeChecker(NodeVisitor):
                 print 'ERROR: Type mismatch in argument %s, line %s' % (i, node.lineno)
                 return -1
         return fun[0]
-        

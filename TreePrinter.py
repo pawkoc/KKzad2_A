@@ -223,7 +223,10 @@ class TreePrinter:
         result = ""
 
         result += addIndent(indent) + "REPEAT\n"
-        result += self.instructions.printTree(indent+1)
+
+        for instr in self.instructions:
+            result += instr.printTree(indent+1)
+
         result += addIndent(indent) + "UNTIL\n"
         result += self.condition.printTree(indent+1)
 
