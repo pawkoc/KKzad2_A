@@ -29,7 +29,7 @@ operator_map = {
 
 class Interpreter(object):
     def __init__(self):
-        self.mainMemory = MemoryStack(Memory('main'))
+        self.globalMemory = MemoryStack(Memory('main'))
         self.functionMemory = MemoryStack()
 
     @on('node')
@@ -40,7 +40,6 @@ class Interpreter(object):
     def visit(self, node):
         r1 = node.left.accept(self)
         r2 = node.right.accept(self)
-
         return operator_map[node.op](r1, r2)
 
     @when(AST.Integer)
@@ -75,7 +74,7 @@ class Interpreter(object):
         for init in node.inits:
 
             initResult = init.accept(self)
-            self.mainMemory.insert(initResult[0], initResult[1])
+            self.globalMemory.insert(initResult[0], initResult[1])
 
     @when(AST.Init)
     def visit(self, node):
@@ -90,7 +89,7 @@ class Interpreter(object):
         # print "fundefs"
 
         for fundef in node.functions:
-            fundef.accept(self)
+            self.globalMemory.insert(fundef.name, fundef)
 
 
     @when(AST.ChoiceInstruction)
@@ -105,10 +104,15 @@ class Interpreter(object):
 
     @when(AST.Function)
     def visit(self, node):
-        print 'fundef'
+        # print 'fundef'
+
+        try:
+            node.comp.accept(self)
+        except ReturnValueException as e:
+            return e.value
 
         # tmp_fun = AST.Function(node.type, node.name, node.arguments, node.comp, node.lineno)
-        # self.mainMemory.insert(tmp_fun.name, tmp_fun)
+        # self.globalMemory.insert(tmp_fun.name, tmp_fun)
 
 
     @when(AST.Instruction_list)
@@ -118,15 +122,12 @@ class Interpreter(object):
 
         for instr in node.instructions:
 
-            try:
-                instr.accept(self)
-            except ReturnValueException as e:
-                return e.value
+            instr.accept(self)
 
 
     @when(AST.PrintInstruction)
     def visit(self, node):
-        print "Print instruction"
+        # print "Print instruction"
 
         print node.expression.accept(self)
 
@@ -144,7 +145,7 @@ class Interpreter(object):
         value = node.expression.accept(self)
 
         if not self.functionMemory.set(node.name, value):
-            self.mainMemory.set(node.name, value)
+            self.globalMemory.set(node.name, value)
 
         return value
 
@@ -158,7 +159,7 @@ class Interpreter(object):
         value = self.functionMemory.get(node.name)
 
         if value is None:
-            return self.mainMemory.get(node.name)
+            return self.globalMemory.get(node.name)
 
         return value
 
@@ -167,16 +168,16 @@ class Interpreter(object):
 
         # print "Function_call"
 
-        function = self.mainMemory.get(node.name)
+        function = self.globalMemory.get(node.name)
         argValues = node.expressions.accept(self)
 
         self.functionMemory.push(Memory(node.name))
 
+        func = self.globalMemory.get(node.name)
 
-
-        value = 0
-
-        return value
+        for i in xrange(len(func.arguments)):
+            self.functionMemory.insert(func.arguments[i][1],argValues[i])
+        return func.accept(self)
 
     @when(AST.Expression_list)
     def visit(self, node):
@@ -216,8 +217,8 @@ class Interpreter(object):
                     for instr in node.instructions:
                         r = instr.accept(self)
                 except ContinueException:
-                    r=None
-                    continue
+                    r = None
+                    # continue
                 if node.condition.accept(self):
                     break
         except BreakException:
@@ -234,7 +235,7 @@ class Interpreter(object):
 
     @when(AST.Compound_instr)
     def visit(self, node):
-        self.mainMemory.push(Memory('compound'))
+        self.globalMemory.push(Memory('compound'))
         self.functionMemory.push(Memory('compound'))
         try:
             node.declaration_list.accept(self)
@@ -242,7 +243,7 @@ class Interpreter(object):
         except Exception as e:
             raise e
         finally:
-            self.mainMemory.pop()
+            self.globalMemory.pop()
             self.functionMemory.pop()
 
     @when(AST.ReturnInstruction)

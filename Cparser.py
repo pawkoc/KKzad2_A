@@ -288,7 +288,10 @@ class Cparser(object):
     def p_expr_list_or_empty(self, p):
         """expr_list_or_empty : expr_list
                               | """
-        p[0] = p[1]
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = []
 
 
     def p_expr_list(self, p):

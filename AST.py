@@ -46,7 +46,7 @@ class Float(Const):
 
 class String(Const):
     def __init__(self, value):
-        self.value = str(value)
+        self.value = value.replace('\"', '')
 
 
 class Variable(Node):

@@ -21,8 +21,7 @@ if __name__ == '__main__':
     p = parser.parse(text, lexer=Cparser.scanner)
 
     TC = TypeChecker()
-    TC.visit(p)
-    # if not TC.visit(p):
-    print p
-    intrepreter = Interpreter.Interpreter()
-    p.accept(intrepreter)
+    if not TC.visit(p):
+        # print p
+        intrepreter = Interpreter.Interpreter()
+        p.accept(intrepreter)

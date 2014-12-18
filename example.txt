@@ -1,43 +1,72 @@
-float a = 100, b = 1, c = 0;
-string s = "ABSKSBJAKSBAS";
-int gcd(int m, int n) {
+int max = 15;
+int i = 0;
 
-int res = 0;
 
-print s;
+int fib_iter(int n) {
 
-if (m!=n) { 
-    if (m > n) 
-        res = gcd(m-n, n);
-    else
-        res = gcd(n-m, m);
-}
-else
-    res = m;
+int i = 0;
 
-print res;
-
-return "res";
-}
-
-while(b>0) {
-    int a = 10;
-
-    while(a>0) {
-        print a;
-        a = a-1;
+    if(n <= 0) {
+        return 0;
     }
-
-    b=0;
+    if(n == 1) {
+        return 1;
+    }
+    else
+    {
+        int a = 0, b = 1, sum = 0, i = 0;
+        while(i < (n-1)) {
+            sum = a + b;
+            a = b;
+            b = sum;
+            i = i+1;
+        }
+        return sum;
+    }
 }
 
-print a;
 
-
-print s;
-
-if(a > 0) {
-    print a;
+int fib(int n) {
+    if(n <= 0) {
+        return 0;
+    }
+    if(n == 1) {
+        return 1;
+    } 
+    else {
+        return fib(n-1) + fib(n-2);
+    }
 }
 
-return a;
+
+int trib(int n) {
+    if(n <= 1) {
+        return 0;
+    }
+    if(n == 2) {
+        return 1;
+    } 
+    else {
+        return trib(n-1) + trib(n-2) + trib(n-3);
+    }
+}
+
+
+i = 0;
+while (i <= max ) {
+    print fib(i);
+    i = i + 1;
+}
+
+i = 0;
+while(i <= max) {
+    print fib_iter(i);
+    i = i+1;
+}
+
+i = 0;
+while(i <= max) {
+    print trib(i);
+    i = i+1;
+}
+
