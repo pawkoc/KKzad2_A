@@ -195,6 +195,10 @@ class TypeChecker(NodeVisitor):
                 func.funcs = node.funcs
                 func.vars = node.vars
                 collision = node.funcs.get(func.name)
+                if node.vars.get(func.name) != -1:
+                    print 'ERROR: \'%s\' redeclared as different kind of symbol, line %s' % (func.name, str(func.lineno))
+                    errors = True
+                    continue
                 if collision == -1:
                     node.funcs.put(func.name, func.type, func.arguments)
                 else:
@@ -293,6 +297,9 @@ class TypeChecker(NodeVisitor):
         # print str(node)
         if collision:
             print 'ERROR: Variable already declared, line ' + str(node.lineno)
+            return -1
+        if node.funcs.get(node.name) != -1:
+            print 'ERROR: \'%s\' redeclared as different kind of symbol, line %s' % (node.name, str(node.lineno))
             return -1
         node.expression.vars = node.vars
         node.expression.funcs = node.funcs
