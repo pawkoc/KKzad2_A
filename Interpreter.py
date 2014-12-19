@@ -63,14 +63,11 @@ class Interpreter(object):
 
     @when(AST.Declaration_list)
     def visit(self, node):
-        # print "decl list"
         for decl in node.declarations:
             decl.accept(self)
 
     @when(AST.Declaration)
     def visit(self, node):
-        # print 'declaration'
-
         for init in node.inits:
 
             initResult = init.accept(self)
@@ -78,18 +75,10 @@ class Interpreter(object):
 
     @when(AST.Init)
     def visit(self, node):
-        # print "init"
         name = node.name
         expression = node.expression.accept(self)
 
         return (name, expression)
-
-    @when(AST.Function_list)
-    def visit(self, node):
-        # print "fundefs"
-
-        for fundef in node.functions:
-            self.globalMemory.insert(fundef.name, fundef)
 
 
     @when(AST.ChoiceInstruction)
@@ -102,18 +91,53 @@ class Interpreter(object):
             else:
                 return False
 
+    @when(AST.Function_list)
+    def visit(self, node):
+        # print "fundefs"
+
+        for fundef in node.functions:
+            self.globalMemory.insert(fundef.name, fundef)
+
+    @when(AST.Function_call)
+    def visit(self, node):
+
+        argValues = node.expressions.accept(self)
+
+        self.functionMemory.push(Memory(node.name))
+
+        func = self.globalMemory.get(node.name)
+
+        for i in xrange(len(func.arguments)):
+            self.functionMemory.insert(func.arguments[i][1],argValues[i])
+
+        try:
+            val = func.accept(self)
+
+        except ReturnValueException as e:
+            return e.value
+        finally:
+            self.functionMemory.pop()
+
     @when(AST.Function)
     def visit(self, node):
-        # print 'fundef'
 
         try:
             node.comp.accept(self)
         except ReturnValueException as e:
-            return e.value
+            raise e
 
-        # tmp_fun = AST.Function(node.type, node.name, node.arguments, node.comp, node.lineno)
-        # self.globalMemory.insert(tmp_fun.name, tmp_fun)
-
+    @when(AST.Compound_instr)
+    def visit(self, node):
+        self.globalMemory.push(Memory('compound'))
+        self.functionMemory.push(Memory('compound'))
+        try:
+            node.declaration_list.accept(self)
+            node.instruction_list.accept(self)
+        except Exception as e:
+            raise e
+        finally:
+            self.globalMemory.pop()
+            self.functionMemory.pop()
 
     @when(AST.Instruction_list)
     def visit(self, node):
@@ -149,8 +173,6 @@ class Interpreter(object):
 
         return value
 
-
-
     @when(AST.Variable)
     def visit(self, node):
 
@@ -163,22 +185,6 @@ class Interpreter(object):
 
         return value
 
-    @when(AST.Function_call)
-    def visit(self, node):
-
-        # print "Function_call"
-
-        function = self.globalMemory.get(node.name)
-        argValues = node.expressions.accept(self)
-
-        self.functionMemory.push(Memory(node.name))
-
-        func = self.globalMemory.get(node.name)
-
-        for i in xrange(len(func.arguments)):
-            self.functionMemory.insert(func.arguments[i][1],argValues[i])
-        return func.accept(self)
-
     @when(AST.Expression_list)
     def visit(self, node):
 
@@ -190,9 +196,6 @@ class Interpreter(object):
 
     @when(AST.Const)
     def visit(self, node):
-        # k = node.value + 1
-        # print "Const: %s"%k
-
         return node.value
 
     @when(AST.WhileInstruction)
@@ -232,19 +235,6 @@ class Interpreter(object):
     @when(AST.ContinueInstruction)
     def visit(self, node):
         raise ContinueException()
-
-    @when(AST.Compound_instr)
-    def visit(self, node):
-        self.globalMemory.push(Memory('compound'))
-        self.functionMemory.push(Memory('compound'))
-        try:
-            node.declaration_list.accept(self)
-            node.instruction_list.accept(self)
-        except Exception as e:
-            raise e
-        finally:
-            self.globalMemory.pop()
-            self.functionMemory.pop()
 
     @when(AST.ReturnInstruction)
     def visit(self,node):
